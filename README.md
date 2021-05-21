@@ -3,4 +3,4 @@ Tool for processing the quarterly travel data, importing it into MySQL (or Maria
 
 Run as `./filter_csv.py`, and then import with `sudo mysql < orca_data_clean.sql`
 
-Icons from "https://github.com/iconic/open-iconic"
+Icons from https://github.com/iconic/open-iconic
