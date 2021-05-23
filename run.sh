@@ -12,4 +12,5 @@ cp /mnt/Input/* Input
 ./generate_latex.py
 ./collate_reports.py
 
+rm /mnt/Output/*
 cp Collated/* /mnt/Output
