@@ -50,10 +50,12 @@ def gen_queries(queries_dict, folder_save_path, cursor, prj_codes=None):
                         lst += [elem + "\%"]
                     elif headings[i].startswith("Average per"):
                         lst += ["\$" + elem]
-                    elif headings[i].startswith("Total Spend") or headings[i].startswith("Total Expenditure"):
+                    elif headings[i].startswith("Total Spend") or headings[i].startswith("Total Expenditure") or headings[i].endswith("Fee") or headings[i] == "Fare":
                         lst += ["\$" + elem]
                     elif headings[i].startswith("Total Kilometers"):
                         lst += [elem + "km"]
+                    elif headings[i].startswith("Total CO2"):
+                        lst += [elem + "kg"]
                     else:
                         lst += [elem]
                 csvwriter.writerow(lst)

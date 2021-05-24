@@ -5,6 +5,7 @@ rm -r Reports Collated Input
 mkdir Input
 
 cp /mnt/Input/* Input
+dos2unix Input/*
 
 ./teams_csv_to_json.py
 ./import_csv.py

@@ -38,7 +38,7 @@ def do_csv(title, basedir, queries):
             headings = query["headings"]
             
             #Create a new heading
-            latex_file.write(r"\section*{" + heading_name + "}\n")
+            latex_file.write(r"\section*{" + heading_name.replace("CO2", r"CO\textsubscript{2}") + "}\n")
             
             with open(basedir + "/" + filename) as csv_file:
                 csv_file_lines = csv_file.readlines()
@@ -52,7 +52,6 @@ def do_csv(title, basedir, queries):
                         elif headings[0] == "Total Expenditure":
                             heading_icon = "money_icon"
                         elif headings[0] == "Total CO2 Emissions":
-                            headings[0] = headings[0].replace("CO2", r"CO\textsubscript{2}")
                             heading_icon = "co2_icon"
                         else:
                             #Use default icon to make pdflatex not complain
