@@ -119,6 +119,6 @@
             "Average per Transaction",
             "Percentage of Overall Spend"
         ],
-        "query": "SELECT Type, COUNT(*), ROUND(100 * COUNT(*) / CumulativeFlights, 2), SUM(TotalPayable), AVG(TotalPayable), ROUND(100 * SUM(TotalPayable) / CumulativeSpend, 2) FROM QuarterlyData INNER JOIN FareTypes ON QuarterlyData.FareType LIKE CONCAT(\"%\", FareTypes.Code, \"%\") CROSS JOIN (Select COUNT(*) AS CumulativeFlights, SUM(TotalPayable) AS CumulativeSpend FROM QuarterlyData WHERE Market = \"Domestic\" AND {where_clause}) T WHERE Market = \"Domestic\" AND {where_clause} GROUP BY Type;"
+        "query": "SELECT Type, COUNT(*), ROUND(100 * COUNT(*) / CumulativeFlights, 2), SUM(TotalPayable), ROUND(AVG(TotalPayable), 2), ROUND(100 * SUM(TotalPayable) / CumulativeSpend, 2) FROM QuarterlyData INNER JOIN FareTypes ON QuarterlyData.FareType LIKE CONCAT(\"%\", FareTypes.Code, \"%\") CROSS JOIN (Select COUNT(*) AS CumulativeFlights, SUM(TotalPayable) AS CumulativeSpend FROM QuarterlyData WHERE Market = \"Domestic\" AND {where_clause}) T WHERE Market = \"Domestic\" AND {where_clause} GROUP BY Type;"
     }
 ]
