@@ -43,7 +43,7 @@
         "query": "SELECT TravellerName, COUNT(TotalPayable) AS NumberTransactions, SUM(TotalPayable) AS TotalCost, ROUND(AVG(TotalPayable), 2) AS CostPerTransaction, ROUND(100 * SUM(TotalPayable) / CumulativePayable, 2) AS PctOverallSpend FROM QuarterlyData CROSS JOIN (SELECT SUM(TotalPayable) AS CumulativePayable FROM QuarterlyData WHERE {where_clause}) T WHERE {where_clause} GROUP BY TravellerName ORDER BY NumberTransactions DESC;"
     },
     {
-        "name": "Accomodation Nights",
+        "name": "Accommodation Nights",
         "headings": [
             "City",
             "Number of Transactions",

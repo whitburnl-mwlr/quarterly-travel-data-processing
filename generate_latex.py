@@ -23,7 +23,7 @@ def do_csv(title, basedir, queries):
         """)
         
         #Generate the title
-        latex_file.write(r"\title{\includegraphics[width=0.5\textwidth]{" + os.getcwd() + r"/mwlr_logo}~\\[1cm] {\Large Team Travel Report for} \\" + title.replace("&", "\&") + "}\n")
+        latex_file.write(r"\title{\includegraphics[width=0.5\textwidth]{" + os.getcwd() + r"/mwlr_logo.png}~\\[1cm] {\Large Team Travel Report for} \\" + title.replace("&", "\&") + "}\n")
         latex_file.write(r"""
         \begin{document}
         \maketitle
@@ -61,7 +61,7 @@ def do_csv(title, basedir, queries):
                         data = csv_file_lines[-1]
                         
                         #Write the graphics and text
-                        latex_file.write(r"\begin{center}" + "\n" + r"\includegraphics[width=0.1\textwidth]{" + os.getcwd() + "/" + heading_icon + "}" + "\n"r"\end{center}" + "\n")
+                        latex_file.write(r"\begin{center}" + "\n" + r"\includegraphics[width=0.1\textwidth]{" + os.getcwd() + "/" + heading_icon + ".png}" + "\n"r"\end{center}" + "\n")
                         latex_file.write(r"\begingroup" + "\n" + r"\LARGE" + "\n")
                         latex_file.write(r"\centerline{" + data[:-1] + "}\n")
                         latex_file.write(r"\endgroup" + "\n")
@@ -97,7 +97,7 @@ def do_csv(title, basedir, queries):
     print(basedir)
     
     #Run pdflatex in batch mode to make it quiet
-    os.system("cd \"" + basedir + "\"; pdflatex -interaction=batchmode report.tex; rm report.tex; rm report.aux; rm report.log; cd -")
+    os.system("cd \"" + basedir + "\"; pdflatex -interaction=batchmode report.tex; pandoc report.tex -o report.docx; rm report.aux; rm report.log; cd -")
             
 #Takes a reports directory, and the filename of the queries file, and generates some LaTeX
 def main(basedir, queries_filename):
