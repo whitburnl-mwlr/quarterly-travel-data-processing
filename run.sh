@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+git pull
+
 rm -r Reports Collated Input
 
 mkdir Input
