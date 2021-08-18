@@ -9,7 +9,7 @@ def do_csv(title, basedir, queries):
         #Header to include packages and set the author etc.
         latex_file.write(r"""
         \documentclass[a4paper]{article}
-        \usepackage[margin=1.5cm]{geometry}
+        \usepackage[margin=2cm, landscape]{geometry}
         \usepackage[T1]{fontenc}
         \usepackage{graphicx}
         \usepackage{pgfplotstable}
@@ -23,10 +23,11 @@ def do_csv(title, basedir, queries):
         """)
         
         #Generate the title
-        latex_file.write(r"\title{\includegraphics[width=0.5\textwidth]{" + os.getcwd() + r"/mwlr_logo.png}~\\[1cm] {\Large Team Travel Report for} \\" + title.replace("&", "\&") + "}\n")
+        latex_file.write(r"\title{\includegraphics[width=0.5\textwidth]{" + os.getcwd() + r"/mwlr_logo.png}~\\[1cm] {\LARGE Team Travel Report for} \\ \vspace{0.2cm} \\ {\Huge \textbf{" + title.replace("&", "\&") + "}}}\n")
         latex_file.write(r"""
         \begin{document}
         \maketitle
+        \pagebreak
         """)
         
         for query in queries:
@@ -62,7 +63,7 @@ def do_csv(title, basedir, queries):
                         
                         #Write the graphics and text
                         latex_file.write(r"\begin{center}" + "\n" + r"\includegraphics[width=0.1\textwidth]{" + os.getcwd() + "/" + heading_icon + ".png}" + "\n"r"\end{center}" + "\n")
-                        latex_file.write(r"\begingroup" + "\n" + r"\LARGE" + "\n")
+                        latex_file.write(r"\begingroup" + "\n" + r"\Huge" + "\n")
                         latex_file.write(r"\centerline{" + data[:-1] + "}\n")
                         latex_file.write(r"\endgroup" + "\n")
                     else:
@@ -78,7 +79,7 @@ def do_csv(title, basedir, queries):
                             else:
                              col_type = r"l"
                             
-                            if heading.startswith("Number") or heading.startswith("Percent"):
+                            if heading.startswith("Number") or heading.startswith("Percent") or "per" in heading:
                                 col_type = col_type.replace("l", "L").replace("r", "R")
                             
                             display_column_style += r"display columns/" + str(i) + r"/.style={column type={" + col_type + "}},"
@@ -97,7 +98,7 @@ def do_csv(title, basedir, queries):
     print(basedir)
     
     #Run pdflatex in batch mode to make it quiet
-    os.system("cd \"" + basedir + "\"; pdflatex -interaction=batchmode report.tex; pandoc report.tex -o report.docx; rm report.aux; rm report.log; cd -")
+    os.system("cd \"" + basedir + "\"; pdflatex -interaction=batchmode report.tex; rm report.aux; rm report.log; cd -")
             
 #Takes a reports directory, and the filename of the queries file, and generates some LaTeX
 def main(basedir, queries_filename):

@@ -50,7 +50,7 @@ def gen_queries(queries_dict, folder_save_path, cursor, prj_codes=None):
                         lst += [elem + "\%"]
                     elif headings[i].startswith("Average per"):
                         lst += ["\$" + elem]
-                    elif headings[i].startswith("Total Spend") or headings[i].startswith("Total Expenditure") or headings[i].endswith("Fee") or headings[i] == "Fare":
+                    elif headings[i].startswith("Total Spend") or headings[i].startswith("Total Expenditure") or headings[i].endswith("Fee") or headings[i].endswith("Spend") or headings[i] == "Fare":
                         lst += ["\$" + elem]
                     elif headings[i].startswith("Total Kilometers"):
                         lst += [elem + "km"]
