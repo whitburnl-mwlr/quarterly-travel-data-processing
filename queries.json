@@ -4,21 +4,27 @@
         "headings": [
             "Total Kilometers Travelled"
         ],
-        "query": "SELECT SUM(Distance*Quantity) AS TotalKM FROM QuarterlyData INNER JOIN CityPairs ON QuarterlyData.CityPair = CityPairs.Pair WHERE CityPair <> \"\" AND {where_clause};"
+        "query": "SELECT SUM(Distance*Quantity) AS TotalKM FROM {table_name} INNER JOIN CityPairs ON {table_name}.CityPair = CityPairs.Pair WHERE CityPair <> \"\" AND {where_clause};",
+        "last_qtr": true,
+        "last_year": true
     },
     {
         "name": "Total Expenditure",
         "headings": [
             "Total Expenditure"
         ],
-        "query": "SELECT SUM(TotalPayable) AS TotalCost FROM QuarterlyData WHERE {where_clause};"
+        "query": "SELECT SUM(TotalPayable) AS TotalCost FROM {table_name} WHERE {where_clause};",
+        "last_qtr": true,
+        "last_year": true
     },
     {
         "name": "Total CO2",
         "headings": [
             "Total CO2 Emissions"
         ],
-        "query": "SELECT SUM(CO2*Quantity) AS TotalCO2 FROM (SELECT Market, Factor, Distance, Quantity, ROUND(Factor * Distance, 0) AS CO2 FROM QuarterlyData INNER JOIN CityPairs ON QuarterlyData.CityPair = CityPairs.Pair INNER JOIN CO2Factor ON QuarterlyData.Market = CO2Factor.Type WHERE CityPair <> \"\" AND {where_clause}) T;"
+        "query": "SELECT ROUND(((SELECT SUM(CO2*Quantity) AS TravelCO2 FROM (SELECT Market, Factor, Distance, Quantity, Factor * Distance AS CO2 FROM {table_name} INNER JOIN CityPairs ON {table_name}.CityPair = CityPairs.Pair INNER JOIN CO2Factor ON {table_name}.Market = CO2Factor.Type WHERE CityPair <> \"\" AND {where_clause}) T) + (SELECT SUM(Quantity * Factor) AS HotelCO2 FROM {table_name} INNER JOIN CO2Factor ON CO2Factor.Type = \"Hotel\" WHERE VendorType=\"Hotel\" AND Quantity > 0 AND {where_clause})),0) as TotalCO2;",
+        "last_qtr": true,
+        "last_year": true
     },
     {
         "name": "Transaction Types",
@@ -29,7 +35,7 @@
             "Average per Transaction",
             "Percentage of Overall Spend"
         ],
-        "query": "SELECT VendorType, COUNT(TotalPayable) AS NumberTransactions, SUM(TotalPayable) AS TotalCost, ROUND(AVG(TotalPayable),2) AS AveragePerTransaction, ROUND(100 * SUM(TotalPayable) / CumulativePayable, 2) AS PctOverallSpend FROM QuarterlyData CROSS JOIN (SELECT SUM(TotalPayable) AS CumulativePayable FROM QuarterlyData WHERE {where_clause}) T WHERE {where_clause} GROUP BY VendorType ORDER BY PctOverallSpend DESC;"
+        "query": "SELECT VendorType, COUNT(TotalPayable) AS NumberTransactions, SUM(TotalPayable) AS TotalCost, ROUND(AVG(TotalPayable),2) AS AveragePerTransaction, ROUND(100 * SUM(TotalPayable) / CumulativePayable, 2) AS PctOverallSpend FROM {table_name} CROSS JOIN (SELECT SUM(TotalPayable) AS CumulativePayable FROM {table_name} WHERE {where_clause}) T WHERE {where_clause} GROUP BY VendorType ORDER BY PctOverallSpend DESC;"
     },
     {
         "name": "Travellers",
@@ -42,7 +48,7 @@
             "Average per Transaction",
             "Percentage of Overall Spend"
         ],
-        "query": "SELECT TravellerName, COUNT(TotalPayable) AS NumberTransactions, SUM(TotalPayable) AS TotalCost, SUM(CASE WHEN RoomOrIncidental = \"\" THEN TotalPayable ELSE 0 END) AS TotalTicket, SUM(CASE WHEN RoomOrIncidental = \"ROM\" THEN TotalPayable ELSE 0 END) AS TotalHotel, ROUND(AVG(TotalPayable), 2) AS CostPerTransaction, ROUND(100 * SUM(TotalPayable) / CumulativePayable, 2) AS PctOverallSpend FROM QuarterlyData CROSS JOIN (SELECT SUM(TotalPayable) AS CumulativePayable FROM QuarterlyData WHERE {where_clause}) T WHERE {where_clause} GROUP BY TravellerName ORDER BY PctOverallSpend DESC;"
+        "query": "SELECT TravellerName, COUNT(TotalPayable) AS NumberTransactions, SUM(TotalPayable) AS TotalCost, SUM(CASE WHEN RoomOrIncidental = \"\" THEN TotalPayable ELSE 0 END) AS TotalTicket, SUM(CASE WHEN RoomOrIncidental = \"ROM\" THEN TotalPayable ELSE 0 END) AS TotalHotel, ROUND(AVG(TotalPayable), 2) AS CostPerTransaction, ROUND(100 * SUM(TotalPayable) / CumulativePayable, 2) AS PctOverallSpend FROM {table_name} CROSS JOIN (SELECT SUM(TotalPayable) AS CumulativePayable FROM {table_name} WHERE {where_clause}) T WHERE {where_clause} GROUP BY TravellerName ORDER BY PctOverallSpend DESC;"
     },
     {
         "name": "Accommodation Nights",
@@ -54,7 +60,7 @@
             "Average per Night",
             "Percentage of Overall Spend"
         ],
-        "query": "SELECT FolderDestination, COUNT(VendorType) AS NumberTransactions, SUM(Quantity) AS NumberNights, SUM(TotalPayable) AS TotalCost, ROUND(AVG(TotalPayable), 2) AS CostPerTransaction, ROUND(100 * SUM(TotalPayable) / CumulativePayable, 2) AS PctOverallSpend FROM QuarterlyData CROSS JOIN (SELECT SUM(TotalPayable) AS CumulativePayable FROM QuarterlyData WHERE VendorType=\"Hotel\" AND Quantity > 0 AND {where_clause}) T WHERE VendorType=\"Hotel\" AND Quantity > 0 AND {where_clause} GROUP BY FolderDestination ORDER BY PctOverallSpend DESC;"
+        "query": "SELECT FolderDestination, COUNT(VendorType) AS NumberTransactions, SUM(Quantity) AS NumberNights, SUM(TotalPayable) AS TotalCost, ROUND(AVG(TotalPayable), 2) AS CostPerTransaction, ROUND(100 * SUM(TotalPayable) / CumulativePayable, 2) AS PctOverallSpend FROM {table_name} CROSS JOIN (SELECT SUM(TotalPayable) AS CumulativePayable FROM {table_name} WHERE VendorType=\"Hotel\" AND Quantity > 0 AND {where_clause}) T WHERE VendorType=\"Hotel\" AND Quantity > 0 AND {where_clause} GROUP BY FolderDestination ORDER BY PctOverallSpend DESC;"
     },
     {
         "name": "Booking Method",
@@ -63,8 +69,8 @@
             "Number of Bookings",
             "Percentage"
         ],
-        "flags": "yes_fees",
-        "query": "SELECT Type, COUNT(*) AS NumberBookings, ROUND(100 * COUNT(*) / CumulativeCount, 2) FROM QuarterlyData INNER JOIN BookingTypes ON QuarterlyData.IncidentalType = BookingTypes.Incidental CROSS JOIN (SELECT Count(*) AS CumulativeCount FROM QuarterlyData INNER JOIN BookingTypes ON QuarterlyData.IncidentalType = BookingTypes.Incidental WHERE Type IS NOT NULL AND {where_clause}) T WHERE {where_clause} GROUP BY Type ORDER BY NumberBookings DESC;"
+        "fees": true,
+        "query": "SELECT Type, COUNT(*) AS NumberBookings, ROUND(100 * COUNT(*) / CumulativeCount, 2) FROM {table_name} INNER JOIN BookingTypes ON {table_name}.IncidentalType = BookingTypes.Incidental CROSS JOIN (SELECT Count(*) AS CumulativeCount FROM {table_name} INNER JOIN BookingTypes ON {table_name}.IncidentalType = BookingTypes.Incidental WHERE Type IS NOT NULL AND {where_clause}) T WHERE {where_clause} GROUP BY Type ORDER BY NumberBookings DESC;"
     },
     {
         "name": "Time of Booking",
@@ -73,7 +79,7 @@
             "Number of Bookings",
             "Percentage of Total"
         ],
-        "query": "SELECT DaysInAdvance, COUNT(DaysInAdvance) AS Count, ROUND(100 * COUNT(DaysInAdvance) / CumulativeCount, 2) AS Pct FROM QuarterlyData CROSS JOIN (SELECT COUNT(DaysInAdvance) AS CumulativeCount FROM QuarterlyData WHERE {where_clause}) T WHERE {where_clause} GROUP BY DaysInAdvance ORDER BY Pct DESC;"
+        "query": "SELECT DaysInAdvance, COUNT(DaysInAdvance) AS Count, ROUND(100 * COUNT(DaysInAdvance) / CumulativeCount, 2) AS Pct FROM {table_name} CROSS JOIN (SELECT COUNT(DaysInAdvance) AS CumulativeCount FROM {table_name} WHERE {where_clause}) T WHERE {where_clause} GROUP BY DaysInAdvance ORDER BY Pct DESC;"
     },
     {
         "name": "City Destinations",
@@ -84,7 +90,7 @@
             "Average per Transaction",
             "Percentage of Overall Spend"
         ],
-        "query": "SELECT TicketDestination, COUNT(TicketDestination) AS NumberTransactions, SUM(TotalPayable) AS TotalCost, ROUND(AVG(TotalPayable), 2) AS CostPerTransaction, ROUND(100 * SUM(TotalPayable) / CumulativePayable, 2) AS PctOverallSpend FROM QuarterlyData CROSS JOIN (SELECT SUM(TotalPayable) AS CumulativePayable FROM QuarterlyData WHERE TicketDestination <> \"\" AND {where_clause}) T WHERE TicketDestination <> \"\" AND {where_clause} GROUP BY FolderDestination ORDER BY PctOverallSpend DESC;"
+        "query": "SELECT TicketDestination, COUNT(TicketDestination) AS NumberTransactions, SUM(TotalPayable) AS TotalCost, ROUND(AVG(TotalPayable), 2) AS CostPerTransaction, ROUND(100 * SUM(TotalPayable) / CumulativePayable, 2) AS PctOverallSpend FROM {table_name} CROSS JOIN (SELECT SUM(TotalPayable) AS CumulativePayable FROM {table_name} WHERE TicketDestination <> \"\" AND {where_clause}) T WHERE TicketDestination <> \"\" AND {where_clause} GROUP BY FolderDestination ORDER BY PctOverallSpend DESC;"
     },
     {
         "name": "Top 10 City Pairs",
@@ -95,7 +101,7 @@
             "Average per Transaction",
             "Percentage of Overall Spend"
         ],
-        "query": "SELECT CityPair, COUNT(TotalPayable) AS NumberTransactions, SUM(TotalPayable) AS TotalCost, ROUND(AVG(TotalPayable), 2) AS CostPerTransaction, ROUND(100 * SUM(TotalPayable) / CumulativePayable, 2) AS PctOverallSpend FROM QuarterlyData CROSS JOIN (SELECT SUM(TotalPayable) AS CumulativePayable FROM QuarterlyData WHERE CityPair <> \"\" AND {where_clause}) T WHERE CityPair <> \"\" AND {where_clause} GROUP BY CityPair ORDER BY COUNT(TotalPayable) DESC LIMIT 10;"
+        "query": "SELECT CityPair, COUNT(TotalPayable) AS NumberTransactions, SUM(TotalPayable) AS TotalCost, ROUND(AVG(TotalPayable), 2) AS CostPerTransaction, ROUND(100 * SUM(TotalPayable) / CumulativePayable, 2) AS PctOverallSpend FROM {table_name} CROSS JOIN (SELECT SUM(TotalPayable) AS CumulativePayable FROM {table_name} WHERE CityPair <> \"\" AND {where_clause}) T WHERE CityPair <> \"\" AND {where_clause} GROUP BY CityPair ORDER BY COUNT(TotalPayable) DESC LIMIT 10;"
     },
     {
         "name": "Air Domestic Cost to Change",
@@ -107,8 +113,8 @@
             "Fare",
             "Amendment Fee"
         ],
-        "flags": "yes_fees",
-        "query": "SELECT Type, SupplierName, TicketOrigin, TicketDestination, TotalPayable, AmendmentFee FROM (SELECT FareType, VendorType, SupplierName, TicketOrigin, TicketDestination, TotalPayable, LAG(IncidentalType) OVER (ORDER BY UniqueRowID) AS LagIncidental, Lag(TotalPayable) OVER (ORDER BY UniqueRowID) AS AmendmentFee FROM QuarterlyData WHERE {where_clause}) T INNER JOIN FareTypes ON T.FareType LIKE CONCAT(\"%\", FareTypes.Code, \"%\") WHERE VendorType = \"TKT\" AND LagIncidental LIKE \"Amendment Fee%\";"
+        "fees": true,
+        "query": "SELECT Type, SupplierName, TicketOrigin, TicketDestination, TotalPayable, AmendmentFee FROM (SELECT FareType, VendorType, SupplierName, TicketOrigin, TicketDestination, TotalPayable, LAG(IncidentalType) OVER (ORDER BY UniqueRowID) AS LagIncidental, Lag(TotalPayable) OVER (ORDER BY UniqueRowID) AS AmendmentFee FROM {table_name} WHERE {where_clause}) T INNER JOIN FareTypes ON T.FareType LIKE CONCAT(\"%\", FareTypes.Code, \"%\") WHERE VendorType = \"TKT\" AND LagIncidental LIKE \"Amendment Fee%\";"
     },
     {
         "name": "Air Domestic Fare Selection",
@@ -120,6 +126,6 @@
             "Average per Transaction",
             "Percentage of Overall Spend"
         ],
-        "query": "SELECT Type, COUNT(*), ROUND(100 * COUNT(*) / CumulativeFlights, 2), SUM(TotalPayable), ROUND(AVG(TotalPayable), 2), ROUND(100 * SUM(TotalPayable) / CumulativeSpend, 2) FROM QuarterlyData INNER JOIN FareTypes ON QuarterlyData.FareType LIKE CONCAT(\"%\", FareTypes.Code, \"%\") CROSS JOIN (Select COUNT(*) AS CumulativeFlights, SUM(TotalPayable) AS CumulativeSpend FROM QuarterlyData WHERE Market = \"Domestic\" AND {where_clause}) T WHERE Market = \"Domestic\" AND {where_clause} GROUP BY Type;"
+        "query": "SELECT Type, COUNT(*), ROUND(100 * COUNT(*) / CumulativeFlights, 2), SUM(TotalPayable), ROUND(AVG(TotalPayable), 2), ROUND(100 * SUM(TotalPayable) / CumulativeSpend, 2) FROM {table_name} INNER JOIN FareTypes ON {table_name}.FareType LIKE CONCAT(\"%\", FareTypes.Code, \"%\") CROSS JOIN (Select COUNT(*) AS CumulativeFlights, SUM(TotalPayable) AS CumulativeSpend FROM {table_name} WHERE Market = \"Domestic\" AND {where_clause}) T WHERE Market = \"Domestic\" AND {where_clause} GROUP BY Type;"
     }
 ]

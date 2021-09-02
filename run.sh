@@ -10,8 +10,8 @@ cp /mnt/Input/* Input
 dos2unix Input/*
 
 ./teams_csv_to_json.py
-./import_csv.py
-./process_sql_data.py
+./import_csv.py $1 $2
+./process_sql_data.py $1 $2
 ./generate_latex.py
 ./collate_reports.py
 

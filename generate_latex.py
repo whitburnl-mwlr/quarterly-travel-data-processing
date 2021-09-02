@@ -3,6 +3,29 @@
 import os
 import json
 
+def process_lq_ly(basedir, filename, file_type, val):
+    test_filename = basedir + "/" + filename.replace(".csv", f"-{file_type}.csv")
+    if (os.path.exists(test_filename)):
+        with open(test_filename) as l_file:
+            l_data = l_file.readlines()[-1][:-1]
+            
+            if l_data != "None":
+                l_val = float(de_unit(l_data))
+                pct_diff = (l_val - val) / val
+                
+                return f"{pct_diff:+.2f}"
+            
+    return None
+
+def de_unit(val):
+    str_build = ""
+    
+    for c in val:
+        if c.isnumeric() or c == ',' or c == '.' or c == '+' or c == '-':
+            str_build += c
+            
+    return str_build
+
 #Write a latex file which incorporates the csv data
 def do_csv(title, basedir, queries):
     with open(basedir + "/report.tex", 'w') as latex_file:
@@ -58,14 +81,33 @@ def do_csv(title, basedir, queries):
                             #Use default icon to make pdflatex not complain
                             heading_icon = "mwlr_logo"
 
-                        #Trim the newline character
-                        data = csv_file_lines[-1]
+                        #Only have one row
+                        data = csv_file_lines[-1][:-1]
                         
                         #Write the graphics and text
-                        latex_file.write(r"\begin{center}" + "\n" + r"\includegraphics[width=0.1\textwidth]{" + os.getcwd() + "/" + heading_icon + ".png}" + "\n"r"\end{center}" + "\n")
+                        latex_file.write(r"\begin{center}" + "\n" + r"\includegraphics[width=0.06\textwidth]{" + os.getcwd() + "/" + heading_icon + ".png}" + "\n"r"\end{center}" + "\n")
                         latex_file.write(r"\begingroup" + "\n" + r"\Huge" + "\n")
-                        latex_file.write(r"\centerline{" + data[:-1] + "}\n")
+                        latex_file.write(r"\centerline{" + data + "}\n")
                         latex_file.write(r"\endgroup" + "\n")
+                        
+                        if data != "None":
+                            latex_file.write(r"\begingroup" + "\n" + r"\Large" + "\n")
+                            
+                            val = float(de_unit(data))
+                            if "last_qtr" in query:
+                                if query["last_qtr"]:
+                                    diff_str = process_lq_ly(basedir, filename, "LQ", val)
+                                    if diff_str:
+                                        latex_file.write("\centerline{" + rf"{diff_str}\% vs last quarter" + "}\n\n")
+                                            
+                            if "last_year" in query:
+                                if query["last_year"]:
+                                    diff_str = process_lq_ly(basedir, filename, "LY", val)
+                                    if diff_str:
+                                        latex_file.write("\centerline{" + rf"{diff_str}\% vs last year" + "}\n\n")
+                                        
+                            latex_file.write(r"\endgroup" + "\n")
+                                           
                     else:
                         #Include the table as a fairly unpleasant LaTeX command
                         display_column_style = ""
