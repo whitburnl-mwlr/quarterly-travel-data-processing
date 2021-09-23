@@ -3,6 +3,7 @@
 import csv
 import math
 import sys
+import json
 
 import mysql.connector
 
@@ -19,7 +20,7 @@ def distance(tup_lhs, tup_rhs):
     return EARTH_RADIUS * delta_sigma
 
 #Take a filename for the csv and city pairs and load it into MySQL.
-def main(orca_src_folder, qtr, year, airports_filename, bookingtype_filename, faretype_filename, co2_filename, filter_refunds=True):
+def main(orca_src_folder, qtr, year, airports_filename, bookingtype_filename, faretype_filename, co2_filename, teams_filename, filter_refunds=True):
     orca_filename = f"{orca_src_folder}/orca_data_q{qtr}_{year}.csv"
     table_name = f"QuarterlyDataQ{qtr}{year}"
 
@@ -31,6 +32,7 @@ def main(orca_src_folder, qtr, year, airports_filename, bookingtype_filename, fa
             cursor.execute("DROP TABLE IF EXISTS BookingTypes;")
             cursor.execute("DROP TABLE IF EXISTS FareTypes;")
             cursor.execute("DROP TABLE IF EXISTS CO2Factor;")
+            cursor.execute("DROP TABLE IF EXISTS TeamCodes;")
 
             #Use a loop to generate the CREATE TABLE query from the SQL_DATA dictionary
             cursor.execute(f"CREATE TABLE {table_name} (" + ", ".join([x + " " + SQL_DATA[x] for x in SQL_DATA]) + ");\n");
@@ -38,6 +40,7 @@ def main(orca_src_folder, qtr, year, airports_filename, bookingtype_filename, fa
             cursor.execute("CREATE TABLE BookingTypes (Incidental VARCHAR(50) PRIMARY KEY, Type VARCHAR(20));")
             cursor.execute("CREATE TABLE FareTypes (Code VARCHAR(20) PRIMARY KEY, Type VARCHAR(50));")
             cursor.execute("CREATE TABLE CO2Factor (Type VARCHAR(20) PRIMARY KEY, Factor DECIMAL(10,6));")
+            cursor.execute("CREATE TABLE TeamCodes (Code VARCHAR(20) PRIMARY KEY, NAME VARCHAR(100));")
 
             airports_dict = {}
 
@@ -115,8 +118,18 @@ def main(orca_src_folder, qtr, year, airports_filename, bookingtype_filename, fa
                     factor = float(row[1])
                     cursor.execute(f'INSERT INTO CO2Factor (Type, Factor) VALUES ("{key}", "{factor}")');
 
+            with open(teams_filename, newline='') as teams_file:
+                teams = json.load(teams_file)
+
+                for team in teams:
+                    for code in team["codes"]:
+                        team_code = code["code"]
+                        team_name = code["name"]
+                        cursor.execute(f'INSERT INTO TeamCodes (Code, Name) VALUES ("{team_code}", "{team_name}");')
+
+
         #Commit the transactions
         cnx.commit()
 
 if __name__ == "__main__":
-    main(f"Input", int(sys.argv[1]), int(sys.argv[2]), "Input/airports.csv", "Input/booking_types.csv", "Input/fare_types.csv", "Input/co2.csv")
+    main(f"Input", int(sys.argv[1]), int(sys.argv[2]), "Input/airports.csv", "Input/booking_types.csv", "Input/fare_types.csv", "Input/co2.csv", "Input/team_prj_rcpt_to.json")

@@ -11,6 +11,31 @@ def run_query(cursor, qtr, year, query, where):
     table = f"QuarterlyDataQ{qtr}{year}"
     cursor.execute(query.format(where_clause=where, table_name=table))
 
+#
+def process_csv_element(tup, headings):
+    lst = []
+    for (i, elem) in enumerate(tup):
+        #Handle the case where there is no data
+        elem = str(elem).replace('&', "\&")
+        if elem == "None":
+            lst += [elem]
+        else:
+            #Add units. Use startswith as it is quicker than contains()
+            if headings[i].startswith("Percentage"):
+                lst += [elem + "\%"]
+            elif headings[i].startswith("Average per"):
+                lst += ["\$" + elem]
+            elif headings[i].startswith("Total Spend") or headings[i].startswith("Total Expenditure") or headings[i].endswith("Fee") or headings[i].endswith("Spend") or headings[i] == "Fare":
+                lst += ["\$" + elem]
+            elif headings[i].startswith("Total Kilometers"):
+                lst += [elem + "km"]
+            elif headings[i].startswith("Total CO2"):
+                lst += [elem + "kg"]
+            else:
+                lst += [elem]
+    return lst
+
+#
 def handle_query(cursor, qtr, year, name, query, where_clause, folder_save_path):
     #Run the query
     run_query(cursor, qtr, year, query["query"], where_clause)
@@ -20,30 +45,24 @@ def handle_query(cursor, qtr, year, name, query, where_clause, folder_save_path)
         csvwriter = csv.writer(csv_write_file)
 
         headings = query["headings"]
-
         csvwriter.writerow(headings)
         for tup in cursor:
-            lst = []
-            for (i, elem) in enumerate(tup):
-                #Handle the case where there is no data
-                elem = str(elem)
-                if elem == "None":
-                    lst += [elem]
-                else:
-                    #Add units. Use startswith as it is quicker than contains()
-                    if headings[i].startswith("Percentage"):
-                        lst += [elem + "\%"]
-                    elif headings[i].startswith("Average per"):
-                        lst += ["\$" + elem]
-                    elif headings[i].startswith("Total Spend") or headings[i].startswith("Total Expenditure") or headings[i].endswith("Fee") or headings[i].endswith("Spend") or headings[i] == "Fare":
-                        lst += ["\$" + elem]
-                    elif headings[i].startswith("Total Kilometers"):
-                        lst += [elem + "km"]
-                    elif headings[i].startswith("Total CO2"):
-                        lst += [elem + "kg"]
-                    else:
-                        lst += [elem]
-            csvwriter.writerow(lst)
+            csvwriter.writerow(process_csv_element(tup, headings))
+
+#Generates the aggregate reports
+def gen_queries_aggregate(cursor, qtr, year, queries_dict, folder_save_path):
+    os.makedirs(folder_save_path, exist_ok=True)
+    for query in queries_dict:
+        table = f"QuarterlyDataQ{qtr}{year}"
+        cursor.execute(query["query"].format(table_name=table))
+
+        headings = query["headings"]
+
+        with open(folder_save_path + "/" + query["name"].replace(" ", "-") + ".csv", 'w', newline='') as csv_write_file:
+            csvwriter = csv.writer(csv_write_file)
+            csvwriter.writerow(headings)
+            for tup in cursor:
+                csvwriter.writerow(process_csv_element(tup, headings))
 
 #Takes a list of queries, and a list of project codes, and retrieves the data for the codes
 def gen_queries(cursor, qtr, year, queries_dict, folder_save_path, prj_codes=None):
@@ -102,22 +121,26 @@ def gen_report(cursor, qtr, year, queries_dict, team, output_folder):
     gen_queries(cursor, qtr, year, queries_dict, output_folder + "/" + team["name"], cumulative_codes)
 
 #Takes the list of teams and codes and the queries and runs them, outputting them to a folder
-def main(qtr, year, json_filename, queries_filename, output_folder):
+def main(qtr, year, json_filename, queries_filename, queries_aggregate_filename, output_folder):
     os.makedirs(output_folder, exist_ok=True)
-    with open(json_filename) as json_file:
-        team_dict = json.load(json_file)
 
-        with open(queries_filename) as queries_file:
-            queries_dict = json.load(queries_file)
+    with mysql.connector.connect(user='travel', host='127.0.0.1', database='travel_data') as cnx:
+        with cnx.cursor() as cursor:
+            with open(queries_filename) as queries_file:
+                queries_dict = json.load(queries_file)
+                with open(json_filename) as json_file:
+                    team_dict = json.load(json_file)
 
-            with mysql.connector.connect(user='travel', host='127.0.0.1', database='travel_data') as cnx:
-                with cnx.cursor() as cursor:
                     #Create the reports for each team
                     for team in team_dict:
                         gen_report(cursor, qtr, year, queries_dict, team, output_folder)
 
                     #Generate the whole company report
-                    gen_queries(cursor, qtr, year, queries_dict, output_folder)
+                    gen_queries(cursor, qtr, year, queries_dict, output_folder + "/Extra/All-Company")
+
+            with open(queries_aggregate_filename) as queries_aggregate_file:
+                queries_aggregate_dict = json.load(queries_aggregate_file)
+                gen_queries_aggregate(cursor, qtr, year, queries_aggregate_dict, output_folder + "/Extra/Aggregate")
 
 if __name__ == "__main__":
-    main(int(sys.argv[1]), int(sys.argv[2]), "Input/team_prj_rcpt_to.json", "queries.json", "Reports")
+    main(int(sys.argv[1]), int(sys.argv[2]), "Input/team_prj_rcpt_to.json", "queries.json", "queries_aggregate.json", "Reports")

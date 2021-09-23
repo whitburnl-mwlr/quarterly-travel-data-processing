@@ -147,15 +147,24 @@ def do_csv(title, basedir, queries):
     os.system("cd \"" + basedir + "\"; pdflatex -interaction=batchmode report.tex; rm report.aux; rm report.log; cd -")
 
 #Takes a reports directory, and the filename of the queries file, and generates some LaTeX
-def main(basedir, queries_filename):
+def main(basedir, queries_filename, queries_aggregate_filename):
     with open(queries_filename) as queries_file:
         queries = json.load(queries_file)
 
+    with open(queries_aggregate_filename) as queries_aggregate_file:
+        queries_aggregate = json.load(queries_aggregate_file)
+
     #Generate the latex for the whole company report
-    do_csv("All of MWLR", basedir, queries)
+    do_csv("All of MWLR", basedir + "/Extra/All-Company", queries)
+
+    #Generate the latex for the whole company report
+    do_csv("Teams Aggregate", basedir + "/Extra/Aggregate", queries_aggregate)
 
     #Go through each team...
     for folder in next(os.walk(basedir))[1]:
+        if folder == "Extra":
+            continue
+
         #And generate the team report
         do_csv(folder, basedir + "/" + folder, queries)
 
@@ -167,4 +176,4 @@ def main(basedir, queries_filename):
 
 
 if __name__ == "__main__":
-    main("Reports", "queries.json")
+    main("Reports", "queries.json", "queries_aggregate.json")
