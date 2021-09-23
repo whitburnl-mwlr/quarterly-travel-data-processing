@@ -6,7 +6,7 @@ rm -r Reports Collated Input
 
 mkdir Input
 
-cp /mnt/Input/* Input
+cp  /mnt/c/Users/$(whoami)/TravelData/Input/* Input
 dos2unix Input/*
 
 ./teams_csv_to_json.py
@@ -15,5 +15,5 @@ dos2unix Input/*
 ./generate_latex.py
 ./collate_reports.py
 
-rm /mnt/Output/*
-cp Collated/* /mnt/Output
+rm  /mnt/c/Users/$(whoami)/TravelData/Output/*
+cp Collated/* /mnt/c/Users/$(whoami)/TravelData/Output
