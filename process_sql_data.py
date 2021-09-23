@@ -14,13 +14,13 @@ def run_query(cursor, qtr, year, query, where):
 def handle_query(cursor, qtr, year, name, query, where_clause, folder_save_path):
     #Run the query
     run_query(cursor, qtr, year, query["query"], where_clause)
-            
+
     #Save the query results
     with open(folder_save_path + "/" + query["name"].replace(" ", "-") + (f"-{name}" if name else "") + ".csv", 'w', newline='') as csv_write_file:
         csvwriter = csv.writer(csv_write_file)
 
         headings = query["headings"]
-                
+
         csvwriter.writerow(headings)
         for tup in cursor:
             lst = []
@@ -51,7 +51,7 @@ def gen_queries(cursor, qtr, year, queries_dict, folder_save_path, prj_codes=Non
     for query in queries_dict:
         #The part of the where clause to make sure we only get the data for the project codes we want
         prj_restrict = ("(" + " OR ".join(['OrigPurchaseOrderNo = "' + x + '"' for x in prj_codes]) + ")") if prj_codes is not None else ""
-        
+
         #Default case - we don't care about fees etc.
         where_clause = "((RoomOrIncidental = \"\" OR RoomOrIncidental = \"ROM\")" + ((" AND " + prj_restrict) if prj_codes is not None else "") + ")"
 
@@ -63,17 +63,17 @@ def gen_queries(cursor, qtr, year, queries_dict, folder_save_path, prj_codes=Non
                 where_clause = "(" + prj_restrict + ")" if prj_codes is not None else "(1=1)"
 
         times = [(qtr, year, None)]
-        
+
         if "last_qtr" in query:
             if query["last_qtr"]:
                 new_year = year - 1 if qtr == 1 else year
                 new_qtr = 4 if qtr == 1 else qtr - 1
                 times += [(new_qtr, new_year, "LQ")]
-                
+
         if "last_year" in query:
             if query["last_year"]:
                 times += [(qtr, year - 1, "LY")]
-        
+
         for time in times:
             try:
                 handle_query(cursor, time[0], time[1], time[2], query, where_clause, folder_save_path)
@@ -83,10 +83,10 @@ def gen_queries(cursor, qtr, year, queries_dict, folder_save_path, prj_codes=Non
 #Creates the report csv files from the queries and teams list
 def gen_report(cursor, qtr, year, queries_dict, team, output_folder):
     os.makedirs(output_folder + "/" + team["name"], exist_ok=True)
-    
+
     #We want to generate a report for the whole team, so we add all of the project codes to this list
     cumulative_codes = []
-    
+
     #If we only have one project code, then we don't want to bother with a breakdown by project code
     #Since the data will just be the same
     if len(team["codes"]) == 1:
@@ -106,18 +106,18 @@ def main(qtr, year, json_filename, queries_filename, output_folder):
     os.makedirs(output_folder, exist_ok=True)
     with open(json_filename) as json_file:
         team_dict = json.load(json_file)
-        
+
         with open(queries_filename) as queries_file:
             queries_dict = json.load(queries_file)
-        
+
             with mysql.connector.connect(user='travel', host='127.0.0.1', database='travel_data') as cnx:
                 with cnx.cursor() as cursor:
                     #Create the reports for each team
                     for team in team_dict:
                         gen_report(cursor, qtr, year, queries_dict, team, output_folder)
-                        
+
                     #Generate the whole company report
                     gen_queries(cursor, qtr, year, queries_dict, output_folder)
-    
+
 if __name__ == "__main__":
     main(int(sys.argv[1]), int(sys.argv[2]), "Input/team_prj_rcpt_to.json", "queries.json", "Reports")

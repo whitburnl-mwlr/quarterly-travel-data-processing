@@ -6,7 +6,7 @@
         ],
         "query": "SELECT SUM(Distance*Quantity) AS TotalKM FROM {table_name} INNER JOIN CityPairs ON {table_name}.CityPair = CityPairs.Pair WHERE CityPair <> \"\" AND {where_clause};",
         "last_qtr": true,
-        "last_year": true
+        "last_year": true,
     },
     {
         "name": "Total Expenditure",
@@ -15,7 +15,7 @@
         ],
         "query": "SELECT SUM(TotalPayable) AS TotalCost FROM {table_name} WHERE {where_clause};",
         "last_qtr": true,
-        "last_year": true
+        "last_year": true,
     },
     {
         "name": "Total CO2",
@@ -24,7 +24,7 @@
         ],
         "query": "SELECT ROUND(((SELECT SUM(CO2*Quantity) AS TravelCO2 FROM (SELECT Market, Factor, Distance, Quantity, Factor * Distance AS CO2 FROM {table_name} INNER JOIN CityPairs ON {table_name}.CityPair = CityPairs.Pair INNER JOIN CO2Factor ON {table_name}.Market = CO2Factor.Type WHERE CityPair <> \"\" AND {where_clause}) T) + (SELECT SUM(Quantity * Factor) AS HotelCO2 FROM {table_name} INNER JOIN CO2Factor ON CO2Factor.Type = \"Hotel\" WHERE VendorType=\"Hotel\" AND Quantity > 0 AND {where_clause})),0) as TotalCO2;",
         "last_qtr": true,
-        "last_year": true
+        "last_year": true,
     },
     {
         "name": "Transaction Types",
@@ -80,6 +80,14 @@
             "Percentage of Total"
         ],
         "query": "SELECT DaysInAdvance, COUNT(DaysInAdvance) AS Count, ROUND(100 * COUNT(DaysInAdvance) / CumulativeCount, 2) AS Pct FROM {table_name} CROSS JOIN (SELECT COUNT(DaysInAdvance) AS CumulativeCount FROM {table_name} WHERE {where_clause}) T WHERE {where_clause} GROUP BY DaysInAdvance ORDER BY Pct DESC;"
+    },
+    {
+        "name": "People Booking Close to Departure",
+        "headings": [
+            "Traveller Name",
+            "Count"
+        ],
+        "query": "SELECT TravellerName, COUNT(*) AS Count FROM {table_name} WHERE {where_clause} AND DaysInAdvance = \"1 TO 5\" GROUP BY TravellerName ORDER BY Count DESC;"
     },
     {
         "name": "City Destinations",

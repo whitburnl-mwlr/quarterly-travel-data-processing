@@ -8,22 +8,22 @@ def process_lq_ly(basedir, filename, file_type, val):
     if (os.path.exists(test_filename)):
         with open(test_filename) as l_file:
             l_data = l_file.readlines()[-1][:-1]
-            
+
             if l_data != "None":
                 l_val = float(de_unit(l_data))
                 pct_diff = (l_val - val) / val
-                
+
                 return f"{pct_diff:+.2f}"
-            
+
     return None
 
 def de_unit(val):
     str_build = ""
-    
+
     for c in val:
         if c.isnumeric() or c == ',' or c == '.' or c == '+' or c == '-':
             str_build += c
-            
+
     return str_build
 
 #Write a latex file which incorporates the csv data
@@ -44,7 +44,7 @@ def do_csv(title, basedir, queries):
         \renewcommand{\familydefault}{\sfdefault}
         \author{Trudi Sunitsch & Brian Kueh}
         """)
-        
+
         #Generate the title
         latex_file.write(r"\title{\includegraphics[width=0.5\textwidth]{" + os.getcwd() + r"/mwlr_logo.png}~\\[1cm] {\LARGE Team Travel Report for} \\ \vspace{0.2cm} \\ {\Huge \textbf{" + title.replace("&", "\&") + "}}}\n")
         latex_file.write(r"""
@@ -52,21 +52,25 @@ def do_csv(title, basedir, queries):
         \maketitle
         \pagebreak
         """)
-        
+
         for query in queries:
             heading_name = query["name"]
-            
+
             #Determine the csv filename from the query name
             filename = heading_name.replace(" ", "-") + ".csv"
-            
+
+            #Query may not have been run for this report
+            if not os.path.exists(basedir + "/" + filename):
+                continue
+
             headings = query["headings"]
-            
+
             #Create a new heading
             latex_file.write(r"\section*{" + heading_name.replace("CO2", r"CO\textsubscript{2}") + "}\n")
-            
+
             with open(basedir + "/" + filename) as csv_file:
                 csv_file_lines = csv_file.readlines()
-                
+
                 #If we have data...
                 if len(csv_file_lines) > 1:
                     #Special case for the total CO2, total travel, total spend etc.
@@ -83,35 +87,35 @@ def do_csv(title, basedir, queries):
 
                         #Only have one row
                         data = csv_file_lines[-1][:-1]
-                        
+
                         #Write the graphics and text
                         latex_file.write(r"\begin{center}" + "\n" + r"\includegraphics[width=0.06\textwidth]{" + os.getcwd() + "/" + heading_icon + ".png}" + "\n"r"\end{center}" + "\n")
                         latex_file.write(r"\begingroup" + "\n" + r"\Huge" + "\n")
                         latex_file.write(r"\centerline{" + data + "}\n")
                         latex_file.write(r"\endgroup" + "\n")
-                        
+
                         if data != "None":
                             latex_file.write(r"\begingroup" + "\n" + r"\Large" + "\n")
-                            
+
                             val = float(de_unit(data))
                             if "last_qtr" in query:
                                 if query["last_qtr"]:
                                     diff_str = process_lq_ly(basedir, filename, "LQ", val)
                                     if diff_str:
                                         latex_file.write("\centerline{" + rf"{diff_str}\% vs last quarter" + "}\n\n")
-                                            
+
                             if "last_year" in query:
                                 if query["last_year"]:
                                     diff_str = process_lq_ly(basedir, filename, "LY", val)
                                     if diff_str:
                                         latex_file.write("\centerline{" + rf"{diff_str}\% vs last year" + "}\n\n")
-                                        
+
                             latex_file.write(r"\endgroup" + "\n")
-                                           
+
                     else:
                         #Include the table as a fairly unpleasant LaTeX command
                         display_column_style = ""
-                        
+
                         #Attempt to set the column style
                         for (i, heading) in enumerate(headings):
                             if i == 0:
@@ -120,12 +124,12 @@ def do_csv(title, basedir, queries):
                               col_type = r"l|"
                             else:
                              col_type = r"l"
-                            
+
                             if heading.startswith("Number") or heading.startswith("Percent") or "per" in heading:
                                 col_type = col_type.replace("l", "L").replace("r", "R")
-                            
+
                             display_column_style += r"display columns/" + str(i) + r"/.style={column type={" + col_type + "}},"
-                        
+
                         base_table_incl = r"\pgfplotstabletypeset[col sep=comma, string type, begin table=\begin{longtabu} to \linewidth, end table=\end{longtabu}, every head row/.style={before row=\hline,after row=\hline}, every last row/.style={after row=\hline}, " + display_column_style + "]{" + filename + "}"
                         latex_file.write(base_table_incl + "\n")
                 else:
@@ -135,18 +139,18 @@ def do_csv(title, basedir, queries):
                     latex_file.write(r"\endgroup" + "\n")
 
         latex_file.write(r"\end{document}" + "\n")
-        
+
     #Print what we are doign
     print(basedir)
-    
+
     #Run pdflatex in batch mode to make it quiet
     os.system("cd \"" + basedir + "\"; pdflatex -interaction=batchmode report.tex; rm report.aux; rm report.log; cd -")
-            
+
 #Takes a reports directory, and the filename of the queries file, and generates some LaTeX
 def main(basedir, queries_filename):
     with open(queries_filename) as queries_file:
         queries = json.load(queries_file)
-    
+
     #Generate the latex for the whole company report
     do_csv("All of MWLR", basedir, queries)
 
@@ -154,11 +158,11 @@ def main(basedir, queries_filename):
     for folder in next(os.walk(basedir))[1]:
         #And generate the team report
         do_csv(folder, basedir + "/" + folder, queries)
-        
+
         #And then go through each project and generate the project report
         for folder_next in next(os.walk(basedir + "/" + folder), queries)[1]:
             do_csv(folder + ": " + folder_next, basedir + "/" + folder + "/" + folder_next, queries)
-            
+
     print("Done!")
 
 
