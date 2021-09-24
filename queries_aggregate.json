@@ -6,7 +6,7 @@
             "Team Code",
             "Total Kilometers Travelled"
         ],
-        "query": "SELECT Name, OrigPurchaseOrderNo, SUM(Distance*Quantity) AS TotalKM FROM {table_name} INNER JOIN CityPairs ON {table_name}.CityPair = CityPairs.Pair INNER JOIN TeamCodes ON {table_name}.OrigPurchaseOrderNo = TeamCodes.Code WHERE CityPair <> \"\" GROUP BY OrigPurchaseOrderNo ORDER BY Name ASC;",
+        "query": "SELECT Name, OrigPurchaseOrderNo, SUM(Distance*Quantity) AS TotalKM FROM {table_name} INNER JOIN CityPairs ON {table_name}.CityPair = CityPairs.Pair INNER JOIN TeamCodes ON {table_name}.OrigPurchaseOrderNo = TeamCodes.Code WHERE CityPair <> \"\" AND {where_clause} GROUP BY OrigPurchaseOrderNo ORDER BY Name ASC;",
         "last_qtr": true,
         "last_year": true
     },
@@ -17,7 +17,7 @@
             "Team Code",
             "Number of Trips"
         ],
-        "query": "SELECT Name, OrigPurchaseOrderNo, SUM(Quantity) AS TotalTrips FROM {table_name} INNER JOIN TeamCodes ON {table_name}.OrigPurchaseOrderNo = TeamCodes.Code GROUP BY OrigPurchaseOrderNo ORDER BY Name ASC;",
+        "query": "SELECT Name, OrigPurchaseOrderNo, SUM(Quantity) AS TotalTrips FROM {table_name} INNER JOIN TeamCodes ON {table_name}.OrigPurchaseOrderNo = TeamCodes.Code WHERE {where_clause} GROUP BY OrigPurchaseOrderNo ORDER BY Name ASC;",
         "last_qtr": true,
         "last_year": true
     },
@@ -28,7 +28,7 @@
             "Team Code",
             "Total Expenditure"
         ],
-        "query": "SELECT Name, OrigPurchaseOrderNo, SUM(TotalPayable) AS TotalCost FROM {table_name} INNER JOIN TeamCodes ON {table_name}.OrigPurchaseOrderNo = TeamCodes.Code GROUP BY OrigPurchaseOrderNo ORDER BY Name ASC;",
+        "query": "SELECT Name, OrigPurchaseOrderNo, SUM(TotalPayable) AS TotalCost FROM {table_name} INNER JOIN TeamCodes ON {table_name}.OrigPurchaseOrderNo = TeamCodes.Code WHERE {where_clause} GROUP BY OrigPurchaseOrderNo ORDER BY Name ASC;",
         "last_qtr": true,
         "last_year": true
     },
@@ -39,7 +39,7 @@
             "Team Code",
             "Total CO2 Emissions"
         ],
-        "query": "SELECT Name, OrigPurchaseOrderNo, Round(SUM(Factor*Distance*Quantity), 2) AS CO2 FROM {table_name} INNER JOIN CityPairs ON {table_name}.CityPair = CityPairs.Pair INNER JOIN CO2Factor ON {table_name}.Market = CO2Factor.Type INNER JOIN TeamCodes ON {table_name}.OrigPurchaseOrderNo = TeamCodes.Code WHERE CityPair <> \"\" GROUP BY OrigPurchaseOrderNo ORDER BY Name ASC;",
+        "query": "SELECT Name, OrigPurchaseOrderNo, Round(SUM(Factor*Distance*Quantity), 2) AS CO2 FROM {table_name} INNER JOIN CityPairs ON {table_name}.CityPair = CityPairs.Pair INNER JOIN CO2Factor ON {table_name}.Market = CO2Factor.Type INNER JOIN TeamCodes ON {table_name}.OrigPurchaseOrderNo = TeamCodes.Code WHERE CityPair <> \"\" AND {where_clause} GROUP BY OrigPurchaseOrderNo ORDER BY Name ASC;",
         "last_qtr": true,
         "last_year": true
     }

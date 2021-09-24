@@ -84,11 +84,13 @@ def main(orca_src_folder, qtr, year, airports_filename, bookingtype_filename, fa
                         if city_pair not in city_pairs:
                             cities = city_pair.split(' ')
 
-                            dist = distance(airports_dict[cities[0]], airports_dict[cities[1]])
-
-                            cursor.execute(f'INSERT INTO CityPairs (Pair, Distance) VALUES ("{city_pair}", "{dist}")');
-
-                            city_pairs += [city_pair]
+                            try:
+                                dist = distance(airports_dict[cities[0]], airports_dict[cities[1]])
+                                cursor.execute(f'INSERT INTO CityPairs (Pair, Distance) VALUES ("{city_pair}", "{dist}")');
+                                city_pairs += [city_pair]
+                            except KeyError:
+                                print("Below not a valid city pair")
+                                print(city_pair)
 
                     #Form a row to go into the DB
                     data_row = ['"' + row[y] + '"'  for y in [index_dict[x] for x in SQL_DATA.keys()]]

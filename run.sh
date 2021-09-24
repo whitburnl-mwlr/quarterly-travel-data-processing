@@ -16,4 +16,5 @@ dos2unix Input/*
 ./collate_reports.py
 
 rm  /mnt/c/Users/$(whoami)/TravelData/Output/*
+mkdir  /mnt/c/Users/$(whoami)/TravelData/Output/
 cp Collated/* /mnt/c/Users/$(whoami)/TravelData/Output

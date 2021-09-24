@@ -19,7 +19,10 @@ def main(base_dir, reports_dir, json_filename):
             os.makedirs(dest_dir, exist_ok = True)
 
             #Copy the team report to the team leader's directory and give it a name
-            shutil.copyfile(reports_dir + "/" + team["name"] + "/report.pdf", dest_dir + "/" + team["name"] + ".pdf")
+            shutil.copyfile(reports_dir + "/" + team["name"] + "/Extra/All-Team/report.pdf", dest_dir + "/" + team["name"] + ".pdf")
+
+            #Copy the team aggregate report to the team leader's directory and give it a name
+            shutil.copyfile(reports_dir + "/" + team["name"] + "/Extra/Aggregate/report.pdf", dest_dir + "/" + team["name"] + " - Aggregate.pdf")
 
             if len(team["codes"]) > 1:
                 for code in team["codes"]:
@@ -38,7 +41,10 @@ def main(base_dir, reports_dir, json_filename):
             os.system("cd " + base_dir + "; zip -r \"" + rcpt + ".zip\" \"" + rcpt + "\"; rm -r \"" + rcpt + "\"")
 
         #And copy the whole company report
-        shutil.copyfile(reports_dir + "/report.pdf", base_dir + "/Whole Company.pdf")
+        shutil.copyfile(reports_dir + "/Extra/All-Company/report.pdf", base_dir + "/Whole Company.pdf")
+
+        #And copy the whole company aggregate report
+        shutil.copyfile(reports_dir + "/Extra/Aggregate/report.pdf", base_dir + "/Whole Company - Aggregate.pdf")
 
 if __name__ == "__main__":
     main("Collated", "Reports", "Input/team_prj_rcpt_to.json")

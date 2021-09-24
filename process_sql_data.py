@@ -50,11 +50,14 @@ def handle_query(cursor, qtr, year, name, query, where_clause, folder_save_path)
             csvwriter.writerow(process_csv_element(tup, headings))
 
 #Generates the aggregate reports
-def gen_queries_aggregate(cursor, qtr, year, queries_dict, folder_save_path):
+def gen_queries_aggregate(cursor, qtr, year, queries_dict, folder_save_path, prj_codes=None):
     os.makedirs(folder_save_path, exist_ok=True)
+
+    prj_restrict = ("(" + " OR ".join(['OrigPurchaseOrderNo = "' + x + '"' for x in prj_codes]) + ")") if prj_codes is not None else "(1=1)"
+
     for query in queries_dict:
         table = f"QuarterlyDataQ{qtr}{year}"
-        cursor.execute(query["query"].format(table_name=table))
+        cursor.execute(query["query"].format(table_name=table, where_clause=prj_restrict))
 
         headings = query["headings"]
 
@@ -100,7 +103,7 @@ def gen_queries(cursor, qtr, year, queries_dict, folder_save_path, prj_codes=Non
                 print(e)
 
 #Creates the report csv files from the queries and teams list
-def gen_report(cursor, qtr, year, queries_dict, team, output_folder):
+def gen_report(cursor, qtr, year, queries_dict, queries_aggregate_dict, team, output_folder):
     os.makedirs(output_folder + "/" + team["name"], exist_ok=True)
 
     #We want to generate a report for the whole team, so we add all of the project codes to this list
@@ -118,7 +121,11 @@ def gen_report(cursor, qtr, year, queries_dict, team, output_folder):
             gen_queries(cursor, qtr, year, queries_dict, output_folder + "/" + team["name"] + "/" + prj_code + " (" + code["name"] + ")", [prj_code])
 
     #Run the whole team queries
-    gen_queries(cursor, qtr, year, queries_dict, output_folder + "/" + team["name"], cumulative_codes)
+    gen_queries(cursor, qtr, year, queries_dict, output_folder + "/" + team["name"] + "/Extra/All-Team", cumulative_codes)
+
+    #Run the aggregate queries
+    gen_queries_aggregate(cursor, qtr, year, queries_aggregate_dict, output_folder + "/" + team["name"] + "/Extra/Aggregate", cumulative_codes)
+
 
 #Takes the list of teams and codes and the queries and runs them, outputting them to a folder
 def main(qtr, year, json_filename, queries_filename, queries_aggregate_filename, output_folder):
@@ -130,17 +137,16 @@ def main(qtr, year, json_filename, queries_filename, queries_aggregate_filename,
                 queries_dict = json.load(queries_file)
                 with open(json_filename) as json_file:
                     team_dict = json.load(json_file)
+                    with open(queries_aggregate_filename) as queries_aggregate_file:
+                        queries_aggregate_dict = json.load(queries_aggregate_file)
 
-                    #Create the reports for each team
-                    for team in team_dict:
-                        gen_report(cursor, qtr, year, queries_dict, team, output_folder)
+                        #Create the reports for each team
+                        for team in team_dict:
+                            gen_report(cursor, qtr, year, queries_dict, queries_aggregate_dict, team, output_folder)
 
-                    #Generate the whole company report
-                    gen_queries(cursor, qtr, year, queries_dict, output_folder + "/Extra/All-Company")
-
-            with open(queries_aggregate_filename) as queries_aggregate_file:
-                queries_aggregate_dict = json.load(queries_aggregate_file)
-                gen_queries_aggregate(cursor, qtr, year, queries_aggregate_dict, output_folder + "/Extra/Aggregate")
+                        #Generate the whole company report
+                        gen_queries(cursor, qtr, year, queries_dict, output_folder + "/Extra/All-Company")
+                        gen_queries_aggregate(cursor, qtr, year, queries_aggregate_dict, output_folder + "/Extra/Aggregate")
 
 if __name__ == "__main__":
     main(int(sys.argv[1]), int(sys.argv[2]), "Input/team_prj_rcpt_to.json", "queries.json", "queries_aggregate.json", "Reports")

@@ -166,10 +166,15 @@ def main(basedir, queries_filename, queries_aggregate_filename):
             continue
 
         #And generate the team report
-        do_csv(folder, basedir + "/" + folder, queries)
+        do_csv(folder, basedir + "/" + folder + "/Extra/All-Team", queries)
+
+        #And generate the team aggregate report
+        do_csv(folder, basedir + "/" + folder + "/Extra/Aggregate", queries_aggregate)
 
         #And then go through each project and generate the project report
         for folder_next in next(os.walk(basedir + "/" + folder), queries)[1]:
+            if folder == "Extra":
+                continue
             do_csv(folder + ": " + folder_next, basedir + "/" + folder + "/" + folder_next, queries)
 
     print("Done!")
