@@ -3,6 +3,7 @@
 import os
 import json
 
+#Handle the last quarter and last year
 def process_lq_ly(basedir, filename, file_type, val):
     test_filename = basedir + "/" + filename.replace(".csv", f"-{file_type}.csv")
     if (os.path.exists(test_filename)):
@@ -17,6 +18,7 @@ def process_lq_ly(basedir, filename, file_type, val):
 
     return None
 
+#Remove units from a quantity
 def de_unit(val):
     str_build = ""
 
@@ -94,6 +96,7 @@ def do_csv(title, basedir, queries):
                         latex_file.write(r"\centerline{" + data + "}\n")
                         latex_file.write(r"\endgroup" + "\n")
 
+                        #Process the last quarter and last year data
                         if data != "None":
                             latex_file.write(r"\begingroup" + "\n" + r"\Large" + "\n")
 
