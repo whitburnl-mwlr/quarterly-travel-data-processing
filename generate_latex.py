@@ -12,6 +12,10 @@ def process_lq_ly(basedir, filename, file_type, val):
 
             if l_data != "None":
                 l_val = float(de_unit(l_data))
+
+                if val == 0:
+                    return "∞"
+
                 pct_diff = (l_val - val) / val
 
                 return f"{pct_diff:+.2f}"

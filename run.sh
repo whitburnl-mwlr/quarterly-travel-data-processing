@@ -2,6 +2,9 @@
 
 git pull
 
+#No systemd on WSL, use `service` instead
+sudo service mariadb start
+
 rm -r Reports Collated Input
 
 mkdir Input
