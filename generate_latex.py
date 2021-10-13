@@ -33,7 +33,9 @@ def de_unit(val):
     return str_build
 
 #Write a latex file which incorporates the csv data
-def do_csv(title, basedir, queries):
+def do_csv(title, basedir, queries, subtitle=None):
+    if subtitle:
+        print(subtitle)
     with open(basedir + "/report.tex", 'w') as latex_file:
         #Header to include packages and set the author etc.
         latex_file.write(r"""
@@ -52,7 +54,7 @@ def do_csv(title, basedir, queries):
         """)
 
         #Generate the title
-        latex_file.write(r"\title{\includegraphics[width=0.5\textwidth]{" + os.getcwd() + r"/mwlr_logo.png}~\\[1cm] {\LARGE Team Travel Report for} \\ \vspace{0.2cm} \\ {\Huge \textbf{" + title.replace("&", "\&") + "}}}\n")
+        latex_file.write(r"\title{\includegraphics[width=0.5\textwidth]{" + os.getcwd() + r"/mwlr_logo.png}~\\[1cm] {\LARGE Team Travel Report for} \\ \vspace{0.2cm} \\ {\Huge \textbf{" + title.replace("&", "\&") + ((" - " + subtitle) if subtitle else "") + "}}}\n")
         latex_file.write(r"""
         \begin{document}
         \maketitle
@@ -173,10 +175,10 @@ def main(basedir, queries_filename, queries_aggregate_filename):
             continue
 
         #And generate the team report
-        do_csv(folder, basedir + "/" + folder + "/Extra/All-Team", queries)
+        do_csv(folder, basedir + "/" + folder + "/Extra/All-Team", queries, "Whole Team")
 
         #And generate the team aggregate report
-        do_csv(folder, basedir + "/" + folder + "/Extra/Aggregate", queries_aggregate)
+        do_csv(folder, basedir + "/" + folder + "/Extra/Aggregate", queries_aggregate, "Aggregate")
 
         #And then go through each project and generate the project report
         for folder_next in next(os.walk(basedir + "/" + folder), queries)[1]:

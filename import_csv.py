@@ -8,7 +8,7 @@ import json
 import mysql.connector
 
 #The column names and data types of all the columns we want to import into MySQL (probably MariaDB) from the CSV file from excel
-SQL_DATA = {"UniqueRowID": "INT(10) PRIMARY KEY", "OrigPurchaseOrderNo": "VARCHAR(10)","TravellerName": "VARCHAR(50)", "VendorType": "VARCHAR(30)", "FareType": "VARCHAR(20)", "Market": "VARCHAR(20)", "SupplierName": "VARCHAR(100)", "TicketOrigin": "VARCHAR(10)", "TicketDestination": "VARCHAR(10)", "FolderDestination": "VARCHAR(10)", "GrossExclGST": "DECIMAL(10, 2)", "GST": "DECIMAL(10, 2)", "TotalPayable": "DECIMAL(10, 2)", "CityPair": "VARCHAR(20)", "Quantity": "INT(2)", "IncidentalType": "VARCHAR(50)", "DaysInAdvance": "VARCHAR(10)", "RoomOrIncidental": "VARCHAR(10)"}
+SQL_DATA = {"UniqueRowID": "INT(10) PRIMARY KEY", "OrigPurchaseOrderNo": "VARCHAR(10)", "Projectnumber": "VARCHAR(20)", "TravellerName": "VARCHAR(50)", "VendorType": "VARCHAR(30)", "FareType": "VARCHAR(20)", "Market": "VARCHAR(20)", "SupplierName": "VARCHAR(100)", "TicketOrigin": "VARCHAR(10)", "TicketDestination": "VARCHAR(10)", "FolderDestination": "VARCHAR(10)", "GrossExclGST": "DECIMAL(10, 2)", "GST": "DECIMAL(10, 2)", "TotalPayable": "DECIMAL(10, 2)", "CityPair": "VARCHAR(20)", "Quantity": "INT(2)", "IncidentalType": "VARCHAR(50)", "DaysInAdvance": "VARCHAR(10)", "RoomOrIncidental": "VARCHAR(10)"}
 
 EARTH_RADIUS = 6378 #km
 
