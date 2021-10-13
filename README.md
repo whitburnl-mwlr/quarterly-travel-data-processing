@@ -7,3 +7,4 @@ Icons from https://github.com/iconic/open-iconic
 
 Todo:
  - Hotel CO2 for aggregate files
+ - CO2 issues
