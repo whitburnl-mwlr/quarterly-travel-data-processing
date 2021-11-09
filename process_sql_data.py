@@ -53,7 +53,7 @@ def handle_query(cursor, qtr, year, name, query, where_clause, folder_save_path)
 def gen_queries_aggregate(cursor, qtr, year, queries_dict, folder_save_path, prj_codes=None):
     os.makedirs(folder_save_path, exist_ok=True)
 
-    prj_restrict = ("(" + " OR ".join(['OrigPurchaseOrderNo = "' + x + '"' for x in prj_codes]) + ")") if prj_codes is not None else "(1=1)"
+    prj_restrict = (("(" + " OR ".join(['OrigPurchaseOrderNo = "' + x + '"' for x in prj_codes]) + ")") if prj_codes is not None else "(1=1)") + " AND (RoomOrIncidental = \"\" OR RoomOrIncidental = \"ROM\")"
 
     for query in queries_dict:
         table = f"QuarterlyDataQ{qtr}{year}"
