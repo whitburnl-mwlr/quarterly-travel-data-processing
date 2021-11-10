@@ -22,7 +22,7 @@
         "headings": [
             "Total CO2 Emissions"
         ],
-        "query": "SELECT ROUND(Quantity * Factor * Distance, 2) AS TotalCO2 FROM {table_name} INNER JOIN CityPairs ON {table_name}.CityPair = CityPairs.Pair INNER JOIN CO2Factor ON {table_name}.Market = CO2Factor.Type WHERE CityPair <> \"\" AND {where_clause};",
+        "query": "SELECT ROUND(SUM(Quantity * Factor * Distance), 2) AS TotalCO2 FROM {table_name} INNER JOIN CityPairs ON {table_name}.CityPair = CityPairs.Pair INNER JOIN CO2Factor ON {table_name}.Market = CO2Factor.Type WHERE CityPair <> \"\" AND {where_clause};",
         "last_qtr": true,
         "last_year": true
     },
